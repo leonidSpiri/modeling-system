@@ -23,7 +23,7 @@ class WorkRepositoryImpl : WorkRepository {
         minuteCounter += Random.nextInt(5, 25)
 
         work.workStage = WorkStage.WORK
-        minuteCounter += (feeder.normativeTime * crew.workIndex).toInt()
+        minuteCounter += (feeder.normativeTime / crew.workIndex).toInt()
 
         work.workStage = WorkStage.SEND_RESULTS
         minuteCounter += Random.nextInt(5, 15)

@@ -1,3 +1,14 @@
+import androidx.compose.material.MaterialTheme
+import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
 import data.repository.FeederRepositoryImpl
 import data.repository.WorkRepositoryImpl
 import domain.entity.Crew
@@ -9,7 +20,24 @@ import domain.usecase.DoWorkUseCase
 import java.util.*
 import kotlin.random.Random
 
-fun main() {
+@Composable
+@Preview
+fun App() {
+    var text by remember { mutableStateOf("Hello, World!") }
+
+    MaterialTheme {
+        Button(onClick = {
+            text = "Hello, Desktop!"
+        }) {
+            Text(text)
+        }
+    }
+}
+
+fun main() = application {
+    Window(onCloseRequest = ::exitApplication) {
+        App()
+    }
     val scanner = Scanner(System.`in`)
     println("--- Start of the Program ---")
     println("--- Initializing the GUI ---")
@@ -28,12 +56,14 @@ fun main() {
     val feedersCount = scanner.nextInt()
     val feeders = CreateFeederUseCase(FeederRepositoryImpl()).invoke(feedersCount)
 
+    println("--- The maximum working time of the team per day ---")
+    val maxWorkHours = scanner.nextInt()
 
 
     println("--- Second Stage. Data processing ---")
 
 
-    val summaryStatistics = doWork(simulatingDays, crews, feeders)
+    val summaryStatistics = doWork(simulatingDays, maxWorkHours, crews, feeders)
 
 
     println("--- Third Stage. Data output ---")
@@ -43,17 +73,18 @@ fun main() {
     println("Average of received money for one day for one team: ${summaryStatistics.totalReceivedMoney}")
     println("The average work time of the team in one day: ${summaryStatistics.totalMinuteCounter / 60}")
     println("Average number of devices serviced by one team in one day: ${summaryStatistics.totalFeederCounter}")
+    println("Total amount of money earned: ${summaryStatistics.totalMoney}")
     println("--- End of the Program ---")
 }
 
-private fun doWork(simulatingDays: Int, crews: List<Crew>, feeders: List<Feeder>): Summary {
+private fun doWork(simulatingDays: Int, maxWorkHours:Int, crews: List<Crew>, feeders: List<Feeder>): Summary {
     val summaryStatistics = Summary()
     val doWorkUseCase = DoWorkUseCase(WorkRepositoryImpl())
     for (i in 0 until simulatingDays) {
         val servicedDevices = mutableListOf<Int>()
         for (crew in crews) {
             var work = Work(crewId = crew.id)
-            while (work.minuteCounter < 7 * 60) {
+            while (work.minuteCounter < maxWorkHours * 60) {
                 val feeder = feeders[Random.nextInt(0, feeders.size)]
                 if (servicedDevices.contains(feeder.id))
                     continue
@@ -67,6 +98,7 @@ private fun doWork(simulatingDays: Int, crews: List<Crew>, feeders: List<Feeder>
             summaryStatistics.totalFeederCounter += work.feedersId.size
         }
     }
+    summaryStatistics.totalMoney = summaryStatistics.totalReceivedMoney - summaryStatistics.totalSpentMoney
     summaryStatistics.totalSpentMoney /= summaryStatistics.operationCounter
     summaryStatistics.totalReceivedMoney /= summaryStatistics.operationCounter
     summaryStatistics.totalMinuteCounter /= summaryStatistics.operationCounter
@@ -83,7 +115,7 @@ private fun debugCreateCrew(crewCount: Int): List<Crew> {
                 name = "Crew $i",
                 countOfWorkers = Random.nextInt(1, 2),
                 hourlyRate = Random.nextInt(1000, 3000),
-                workIndex = Random.nextDouble(0.85, 1.5)
+                workIndex = Random.nextDouble(0.85, 2.5)
             )
         )
     }
@@ -119,3 +151,4 @@ private fun createCrews(crewCount: Int): List<Crew> {
     println()
     return crews
 }
+
