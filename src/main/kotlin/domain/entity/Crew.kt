@@ -5,5 +5,5 @@ data class Crew(
     val name: String,
     val countOfWorkers: Int,
     val hourlyRate: Int,
-    val workIndex: Int
+    val workIndex: Double
 )
