@@ -1,12 +1,15 @@
-import androidx.compose.material.MaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import data.repository.FeederRepositoryImpl
@@ -17,67 +20,177 @@ import domain.entity.Summary
 import domain.entity.Work
 import domain.usecase.CreateFeederUseCase
 import domain.usecase.DoWorkUseCase
+import kotlinx.coroutines.*
+import java.awt.FlowLayout
 import java.util.*
+import javax.swing.*
 import kotlin.random.Random
 
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
-fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
+fun app() {
+    val crewCount = remember { mutableStateOf("2") }
+    val simulatingDays = remember { mutableStateOf("100") }
+    val maxWorkHours = remember { mutableStateOf("8") }
+    MaterialTheme(
+        colors = if (isSystemInDarkTheme()) darkColors() else lightColors()
+    ) {
+        val contextMenuRepresentation = if (isSystemInDarkTheme())
+            DarkDefaultContextMenuRepresentation
+        else
+            LightDefaultContextMenuRepresentation
+        CompositionLocalProvider(LocalContextMenuRepresentation provides contextMenuRepresentation) {
+            Surface(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize()) {
+                    TextField(
+                        value = crewCount.value,
+                        modifier = Modifier.padding(start = 16.dp),
+                        singleLine = true,
+                        onValueChange = { crewCount.value = it },
+                        label = { Text(text = "How many crews should work?") }
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-    MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
+                    TextField(
+                        value = simulatingDays.value,
+                        modifier = Modifier.padding(start = 16.dp),
+                        singleLine = true,
+                        onValueChange = { simulatingDays.value = it },
+                        label = { Text(text = "How many days does the simulation last?") }
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    TextField(
+                        value = maxWorkHours.value,
+                        modifier = Modifier.padding(start = 16.dp),
+                        singleLine = true,
+                        onValueChange = { maxWorkHours.value = it },
+                        label = { Text(text = "The maximum working time of the team per day") }
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+
+
+                    TooltipArea(
+                        tooltip = {
+                            // composable tooltip content
+                            Surface(
+                                modifier = Modifier.shadow(4.dp),
+                                color = Color(255, 255, 210),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "Tooltip for me",
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(start = 16.dp),
+                        delayMillis = 300, // in milliseconds
+                        tooltipPlacement = TooltipPlacement.CursorPoint(
+                            alignment = Alignment.BottomEnd,
+                            offset = DpOffset((-16).dp, 0.dp) // tooltip offset
+                        )
+                    ) {
+
+                        Button(onClick = {
+                            startCalculation(
+                                crewCount = crewCount.value.toInt(),
+                                simulatingDays = simulatingDays.value.toInt(),
+                                maxWorkHours = maxWorkHours.value.toInt()
+                            )
+                        }) { Text(text = "Расчет") }
+                    }
+                }
+            }
         }
     }
 }
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        App()
+        app()
     }
-    val scanner = Scanner(System.`in`)
-    println("--- Start of the Program ---")
-    println("--- Initializing the GUI ---")
-
-
-    println("--- First Stage. Data entry ---")
-    println("--- How many crews should work? ---")
-    val crewCount = scanner.nextInt()
-    //val crews = createCrews(crewCount)
-    val crews = debugCreateCrew(crewCount)
-
-    println("--- How many days does the simulation last? ---")
-    val simulatingDays = scanner.nextInt()
-
-    println("--- How many feeders do the teams have to service all the time? ---")
-    val feedersCount = scanner.nextInt()
-    val feeders = CreateFeederUseCase(FeederRepositoryImpl()).invoke(feedersCount)
-
-    println("--- The maximum working time of the team per day ---")
-    val maxWorkHours = scanner.nextInt()
-
-
-    println("--- Second Stage. Data processing ---")
-
-
-    val summaryStatistics = doWork(simulatingDays, maxWorkHours, crews, feeders)
-
-
-    println("--- Third Stage. Data output ---")
-
-    println("Total operations: ${summaryStatistics.operationCounter}")
-    println("Average of spent money for one day for one team: ${summaryStatistics.totalSpentMoney}")
-    println("Average of received money for one day for one team: ${summaryStatistics.totalReceivedMoney}")
-    println("The average work time of the team in one day: ${summaryStatistics.totalMinuteCounter / 60}")
-    println("Average number of devices serviced by one team in one day: ${summaryStatistics.totalFeederCounter}")
-    println("Total amount of money earned: ${summaryStatistics.totalMoney}")
-    println("--- End of the Program ---")
 }
 
-private fun doWork(simulatingDays: Int, maxWorkHours:Int, crews: List<Crew>, feeders: List<Feeder>): Summary {
+
+private fun startCalculation(
+    crewCount: Int,
+    simulatingDays: Int,
+    maxWorkHours: Int
+) {
+    createCrews(crewCount) {
+        val crews = it
+        val feeders = CreateFeederUseCase(FeederRepositoryImpl()).invoke(100000)
+        val summaryStatistics = doWork(simulatingDays, maxWorkHours, crews, feeders)
+
+        println("Total operations: ${summaryStatistics.operationCounter}")
+        println("Average of spent money for one day for one team: ${summaryStatistics.totalSpentMoney}")
+        println("Average of received money for one day for one team: ${summaryStatistics.totalReceivedMoney}")
+        println("The average work time of the team in one day: ${summaryStatistics.totalMinuteCounter / 60}")
+        println("Average number of devices serviced by one team in one day: ${summaryStatistics.totalFeederCounter}")
+        println("Total amount of money earned: ${summaryStatistics.totalMoney}")
+        println("--- End of the Program ---")
+    }
+}
+
+private fun createCrews(crewCount: Int, callback: (List<Crew>) -> Unit) {
+    val crews = mutableListOf<Crew>()
+    for (i in 0 until crewCount) {
+        extracted(i) {
+            crews.add(it)
+            if (crews.size == crewCount)
+                callback(crews)
+        }
+    }
+}
+
+private fun extracted(i: Int, callback: (Crew) -> Unit) {
+    val frame = JFrame("Add new crew")
+    val panel = JPanel()
+    panel.layout = FlowLayout()
+    val label = JLabel("Add ${i + 1} crew")
+
+    val crewNameField = JTextField(10)
+    val countOfWorkersField = JTextField(10)
+    val hourlyRateField = JTextField(10)
+    val workIndexField = JTextField(10)
+
+    val button = JButton()
+    button.text = "Button"
+    button.addActionListener {
+        val crewName = crewNameField.text
+        val countOfWorkers = countOfWorkersField.text.toInt()
+        val hourlyRate = hourlyRateField.text.toInt()
+        val workIndex = workIndexField.text.toDouble()
+        if (crewName.isNotEmpty() && countOfWorkers > 0 && hourlyRate > 0 && workIndex > 0) {
+            frame.dispose()
+            callback(
+                Crew(
+                    id = i,
+                    name = crewName,
+                    countOfWorkers = countOfWorkers,
+                    hourlyRate = hourlyRate,
+                    workIndex = workIndex,
+                )
+            )
+        }
+    }
+    panel.add(label)
+    panel.add(button)
+    panel.add(crewNameField)
+    panel.add(countOfWorkersField)
+    panel.add(hourlyRateField)
+    panel.add(workIndexField)
+    frame.add(panel)
+    frame.setSize(200, 300)
+    frame.setLocationRelativeTo(null)
+    frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
+    frame.isVisible = true
+}
+
+private fun doWork(simulatingDays: Int, maxWorkHours: Int, crews: List<Crew>, feeders: List<Feeder>): Summary {
     val summaryStatistics = Summary()
     val doWorkUseCase = DoWorkUseCase(WorkRepositoryImpl())
     for (i in 0 until simulatingDays) {
@@ -105,50 +218,3 @@ private fun doWork(simulatingDays: Int, maxWorkHours:Int, crews: List<Crew>, fee
     summaryStatistics.totalFeederCounter /= summaryStatistics.operationCounter
     return summaryStatistics
 }
-
-private fun debugCreateCrew(crewCount: Int): List<Crew> {
-    val crews = mutableListOf<Crew>()
-    for (i in 0 until crewCount) {
-        crews.add(
-            Crew(
-                id = i,
-                name = "Crew $i",
-                countOfWorkers = Random.nextInt(1, 2),
-                hourlyRate = Random.nextInt(1000, 3000),
-                workIndex = Random.nextDouble(0.85, 2.5)
-            )
-        )
-    }
-    println(crews)
-    return crews
-}
-
-private fun createCrews(crewCount: Int): List<Crew> {
-    val scanner = Scanner(System.`in`)
-    val crews = mutableListOf<Crew>()
-    for (i in 0 until crewCount) {
-        println("------ Enter the data for the crew number $i ------")
-        println("------ Crew name: ------")
-        val crewName = scanner.next()
-        println("------ Crew size: ------")
-        val countOfWorkers = scanner.nextInt()
-        println("------ Crew hourly rate: ------")
-        val hourlyRate = scanner.nextInt()
-        println("------ Crew work index: ------")
-        val workIndex = scanner.nextDouble()
-        crews.add(
-            Crew(
-                id = i,
-                name = crewName,
-                countOfWorkers = countOfWorkers,
-                hourlyRate = hourlyRate,
-                workIndex = workIndex,
-            )
-        )
-        println("------ Crew successfully created ------")
-    }
-    println(crews)
-    println()
-    return crews
-}
-
