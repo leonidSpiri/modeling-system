@@ -1,8 +1,9 @@
 package domain.entity
 
 data class Summary(
-    val operationCounter: Int = 0,
-    val totalSpentMoney: Int = 0,
-    val totalReceivedMoney: Int = 0,
-    val totalHourCounter: Int = 0,
+    var operationCounter: Int = 0,
+    var totalSpentMoney: Int = 0,
+    var totalReceivedMoney: Int = 0,
+    var totalMinuteCounter: Int = 0,
+    var totalFeederCounter: Int = 0,
 )

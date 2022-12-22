@@ -2,6 +2,6 @@ package domain.entity
 
 data class Feeder(
     val id: Int,
-    val workMinutes: Int,
+    val normativeTime: Int,
     val serviceCost: Int
 )
