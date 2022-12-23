@@ -11,7 +11,7 @@ class FeederRepositoryImpl : FeederRepository {
             feeders.add(
                 Feeder(
                     id = i,
-                    normativeTime = Random.nextInt(20, 90),
+                    normativeTime = Random.nextInt(20, 100),
                     serviceCost = Random.nextInt(7500, 12000),
                 )
             )

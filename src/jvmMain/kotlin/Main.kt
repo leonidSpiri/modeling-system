@@ -1,33 +1,29 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.*
+import androidx.compose.foundation.DarkDefaultContextMenuRepresentation
+import androidx.compose.foundation.LightDefaultContextMenuRepresentation
+import androidx.compose.foundation.LocalContextMenuRepresentation
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import data.repository.FeederRepositoryImpl
 import data.repository.WorkRepositoryImpl
 import domain.entity.Crew
-import domain.entity.Feeder
-import domain.entity.Summary
-import domain.entity.Work
 import domain.usecase.CreateFeederUseCase
 import domain.usecase.DoWorkUseCase
-import kotlinx.coroutines.*
 import java.awt.FlowLayout
-import java.util.*
 import javax.swing.*
 import kotlin.random.Random
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
 fun app() {
@@ -71,37 +67,17 @@ fun app() {
                     )
                     Spacer(modifier = Modifier.height(20.dp))
 
-
-                    TooltipArea(
-                        tooltip = {
-                            // composable tooltip content
-                            Surface(
-                                modifier = Modifier.shadow(4.dp),
-                                color = Color(255, 255, 210),
-                                shape = RoundedCornerShape(4.dp)
-                            ) {
-                                Text(
-                                    text = "Tooltip for me",
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                            }
-                        },
+                    Button(
                         modifier = Modifier.padding(start = 16.dp),
-                        delayMillis = 300, // in milliseconds
-                        tooltipPlacement = TooltipPlacement.CursorPoint(
-                            alignment = Alignment.BottomEnd,
-                            offset = DpOffset((-16).dp, 0.dp) // tooltip offset
-                        )
-                    ) {
-
-                        Button(onClick = {
+                        onClick = {
                             startCalculation(
                                 crewCount = crewCount.value.toInt(),
                                 simulatingDays = simulatingDays.value.toInt(),
                                 maxWorkHours = maxWorkHours.value.toInt()
                             )
+
                         }) { Text(text = "Расчет") }
-                    }
+
                 }
             }
         }
@@ -109,7 +85,11 @@ fun app() {
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Compose for Desktop",
+        state = rememberWindowState(width = 400.dp, height = 400.dp)
+    ) {
         app()
     }
 }
@@ -123,22 +103,34 @@ private fun startCalculation(
     createCrews(crewCount) {
         val crews = it
         val feeders = CreateFeederUseCase(FeederRepositoryImpl()).invoke(100000)
-        val summaryStatistics = doWork(simulatingDays, maxWorkHours, crews, feeders)
+        val summaryStatistics =
+            DoWorkUseCase(WorkRepositoryImpl()).invoke(crews, feeders, simulatingDays, maxWorkHours)
+        val feederCount = summaryStatistics.feederCounter
+        val frame = JFrame("Results")
+        val chart = BarChart()
+        for (i in feederCount.indices) {
+            if (feederCount[i] > 0)
+                chart.addBar(BarChart.colors[Random.nextInt(BarChart.colors.lastIndex)], listOf(feederCount[i], i + 1))
+        }
+        frame.contentPane.add(chart)
+        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+        frame.pack()
+        frame.isVisible = true
 
-        println("Total operations: ${summaryStatistics.operationCounter}")
+        /*println("Total operations: ${summaryStatistics.operationCounter}")
         println("Average of spent money for one day for one team: ${summaryStatistics.totalSpentMoney}")
         println("Average of received money for one day for one team: ${summaryStatistics.totalReceivedMoney}")
         println("The average work time of the team in one day: ${summaryStatistics.totalMinuteCounter / 60}")
         println("Average number of devices serviced by one team in one day: ${summaryStatistics.totalFeederCounter}")
         println("Total amount of money earned: ${summaryStatistics.totalMoney}")
-        println("--- End of the Program ---")
+        println("--- End of the Program ---")*/
     }
 }
 
 private fun createCrews(crewCount: Int, callback: (List<Crew>) -> Unit) {
     val crews = mutableListOf<Crew>()
     for (i in 0 until crewCount) {
-        extracted(i) {
+        crewCreateDialog(i) {
             crews.add(it)
             if (crews.size == crewCount)
                 callback(crews)
@@ -146,7 +138,7 @@ private fun createCrews(crewCount: Int, callback: (List<Crew>) -> Unit) {
     }
 }
 
-private fun extracted(i: Int, callback: (Crew) -> Unit) {
+private fun crewCreateDialog(i: Int, callback: (Crew) -> Unit) {
     val frame = JFrame("Add new crew")
     val panel = JPanel()
     panel.layout = FlowLayout()
@@ -158,7 +150,7 @@ private fun extracted(i: Int, callback: (Crew) -> Unit) {
     val workIndexField = JTextField(10)
 
     val button = JButton()
-    button.text = "Button"
+    button.text = "Ready"
     button.addActionListener {
         val crewName = crewNameField.text
         val countOfWorkers = countOfWorkersField.text.toInt()
@@ -179,42 +171,17 @@ private fun extracted(i: Int, callback: (Crew) -> Unit) {
     }
     panel.add(label)
     panel.add(button)
+    panel.add(JLabel("Crew name"))
     panel.add(crewNameField)
+    panel.add(JLabel("Count of workers"))
     panel.add(countOfWorkersField)
+    panel.add(JLabel("Hourly rate"))
     panel.add(hourlyRateField)
+    panel.add(JLabel("Work index"))
     panel.add(workIndexField)
     frame.add(panel)
     frame.setSize(200, 300)
     frame.setLocationRelativeTo(null)
     frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
     frame.isVisible = true
-}
-
-private fun doWork(simulatingDays: Int, maxWorkHours: Int, crews: List<Crew>, feeders: List<Feeder>): Summary {
-    val summaryStatistics = Summary()
-    val doWorkUseCase = DoWorkUseCase(WorkRepositoryImpl())
-    for (i in 0 until simulatingDays) {
-        val servicedDevices = mutableListOf<Int>()
-        for (crew in crews) {
-            var work = Work(crewId = crew.id)
-            while (work.minuteCounter < maxWorkHours * 60) {
-                val feeder = feeders[Random.nextInt(0, feeders.size)]
-                if (servicedDevices.contains(feeder.id))
-                    continue
-                servicedDevices.add(feeder.id)
-                work = doWorkUseCase.invoke(crew, feeder, work)
-            }
-            summaryStatistics.operationCounter++
-            summaryStatistics.totalSpentMoney += work.spentMoney
-            summaryStatistics.totalReceivedMoney += work.receivedMoney
-            summaryStatistics.totalMinuteCounter += work.minuteCounter
-            summaryStatistics.totalFeederCounter += work.feedersId.size
-        }
-    }
-    summaryStatistics.totalMoney = summaryStatistics.totalReceivedMoney - summaryStatistics.totalSpentMoney
-    summaryStatistics.totalSpentMoney /= summaryStatistics.operationCounter
-    summaryStatistics.totalReceivedMoney /= summaryStatistics.operationCounter
-    summaryStatistics.totalMinuteCounter /= summaryStatistics.operationCounter
-    summaryStatistics.totalFeederCounter /= summaryStatistics.operationCounter
-    return summaryStatistics
 }

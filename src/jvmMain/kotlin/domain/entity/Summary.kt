@@ -6,5 +6,5 @@ data class Summary(
     var totalMoney: Int = 0,
     var totalReceivedMoney: Int = 0,
     var totalMinuteCounter: Int = 0,
-    var totalFeederCounter: Int = 0,
+    var feederCounter: List<Int> = listOf(),
 )
