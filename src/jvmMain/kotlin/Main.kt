@@ -87,7 +87,7 @@ fun app() {
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Compose for Desktop",
+        title = "Modeling System",
         state = rememberWindowState(width = 400.dp, height = 400.dp)
     ) {
         app()
@@ -113,7 +113,7 @@ private fun startCalculation(
                 chart.addBar(BarChart.colors[Random.nextInt(BarChart.colors.lastIndex)], listOf(feederCount[i], i + 1))
         }
         frame.contentPane.add(chart)
-        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+        frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
         frame.pack()
         frame.isVisible = true
 

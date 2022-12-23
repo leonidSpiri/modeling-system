@@ -16,7 +16,6 @@ class BarChart : JPanel() {
             max = max.coerceAtLeast(value[0])
         }
 
-        // paint bars
         val width = width / bars.size - 2
         var x = 1
         for (color in bars.keys) {
@@ -27,11 +26,14 @@ class BarChart : JPanel() {
             g.color = Color.black
             g.drawRect(x, getHeight() - height - 25, width, height)
             g.drawString(value[1].toString(), x + 10, getHeight() - 10)
+            g.drawString(
+                value[0].toString(), x + 10, getHeight() - (height - 10)
+            )
             x += width + 2
         }
     }
 
-    override fun getPreferredSize() = Dimension(600, 400)
+    override fun getPreferredSize() = Dimension(600, 300)
 
     companion object {
         val colors = listOf(
