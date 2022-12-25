@@ -5,7 +5,10 @@ import androidx.compose.foundation.DarkDefaultContextMenuRepresentation
 import androidx.compose.foundation.LightDefaultContextMenuRepresentation
 import androidx.compose.foundation.LocalContextMenuRepresentation
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -43,33 +46,30 @@ class MainScreen {
                     Column(Modifier.fillMaxSize()) {
                         TextField(
                             value = crewCount.value,
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier.padding(10.dp).width(340.dp),
                             singleLine = true,
                             onValueChange = { crewCount.value = it },
-                            label = { Text(text = "How many crews should work?") }
+                            label = { Text(text = "Численность одной бригады?") }
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
 
                         TextField(
                             value = simulatingDays.value,
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier.padding(10.dp).width(340.dp),
                             singleLine = true,
                             onValueChange = { simulatingDays.value = it },
-                            label = { Text(text = "How many days does the simulation last?") }
+                            label = { Text(text = "Длительность моделирование?") }
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
 
                         TextField(
                             value = maxWorkHours.value,
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier.padding(10.dp).width(340.dp),
                             singleLine = true,
                             onValueChange = { maxWorkHours.value = it },
-                            label = { Text(text = "The maximum working time of the team per day") }
+                            label = { Text(text = "Максимальное количество рабочих часов в день") }
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier.padding(10.dp).width(340.dp),
                             onClick = {
                                 startCalculation(
                                     crewCount = crewCount.value.toInt(),
@@ -98,7 +98,7 @@ class MainScreen {
 
     private fun outputResult(summaryStatistics: Summary) {
         val feederCount = summaryStatistics.feederCounter
-        val frame = JFrame("Results")
+        val frame = JFrame("Результаты моделирования")
         val panel = JPanel()
         panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
         panel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
@@ -117,11 +117,11 @@ class MainScreen {
             }
         }
         panel.add(chart)
-        panel.add(JLabel("Total operations: ${summaryStatistics.operationCounter}"))
-        panel.add(JLabel("Average of spent money for one day for one team: ${summaryStatistics.totalSpentMoney} ₽"))
-        panel.add(JLabel("Average of received money for one day for one team: ${summaryStatistics.totalReceivedMoney} ₽"))
-        panel.add(JLabel("The average work time of the team in one day: ${summaryStatistics.totalMinuteCounter / 60} hours"))
-        panel.add(JLabel("Total amount of money earned: ${summaryStatistics.totalMoney} ₽"))
+        panel.add(JLabel("Всего операций моделирования: ${summaryStatistics.operationCounter}"))
+        panel.add(JLabel("Среднее потраченных Д/С в день одной бригадой: ${summaryStatistics.totalSpentMoney} ₽"))
+        panel.add(JLabel("Среднее полученных Д/С в день одной бригадой: ${summaryStatistics.totalReceivedMoney} ₽"))
+        panel.add(JLabel("Среднее рабочее время в день одной бригады: ${summaryStatistics.totalMinuteCounter / 60} hours"))
+        panel.add(JLabel("Общее количество заработанных Д/С: ${summaryStatistics.totalMoney} ₽"))
         frame.add(panel)
         frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
         frame.pack()
@@ -140,10 +140,10 @@ class MainScreen {
     }
 
     private fun crewCreateDialog(i: Int, callback: (Crew) -> Unit) {
-        val frame = JFrame("Add new crew")
+        val frame = JFrame("Новая бригада")
         val panel = JPanel()
         panel.layout = FlowLayout()
-        val label = JLabel("Add ${i + 1} crew")
+        val label = JLabel("Добавление ${i + 1} бригады")
 
         val crewNameField = JTextField(10)
         val countOfWorkersField = JTextField(10)
@@ -151,7 +151,7 @@ class MainScreen {
         val workIndexField = JTextField(10)
 
         val button = JButton()
-        button.text = "Ready"
+        button.text = "Добавить"
         button.addActionListener {
             val crewName = crewNameField.text
             val countOfWorkers = countOfWorkersField.text.toInt()
@@ -172,13 +172,13 @@ class MainScreen {
         }
         panel.add(label)
         panel.add(button)
-        panel.add(JLabel("Crew name"))
+        panel.add(JLabel("Наименование бригады"))
         panel.add(crewNameField)
-        panel.add(JLabel("Count of workers"))
+        panel.add(JLabel("Численность бригады"))
         panel.add(countOfWorkersField)
-        panel.add(JLabel("Hourly rate"))
+        panel.add(JLabel("Ставка в час"))
         panel.add(hourlyRateField)
-        panel.add(JLabel("Work index"))
+        panel.add(JLabel("Индекс производительности"))
         panel.add(workIndexField)
         frame.add(panel)
         frame.setSize(200, 300)

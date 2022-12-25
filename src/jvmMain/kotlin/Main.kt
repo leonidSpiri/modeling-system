@@ -7,8 +7,8 @@ import presentation.MainScreen
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Modeling System",
-        state = rememberWindowState(width = 400.dp, height = 400.dp)
+        title = " Моделирование систем",
+        state = rememberWindowState(width = 350.dp, height = 320.dp)
     ) {
         MainScreen().app()
     }

@@ -12,7 +12,7 @@ class WorkRepositoryImpl : WorkRepository {
             val servicedDevices = mutableListOf<Int>()
             for (crew in crews) {
                 val work = Work(crewId = crew.id)
-                while (work.minuteCounter < maxWorkHours * 60) {
+                while (work.minuteCounter < (maxWorkHours - 1) * 60) {
                     val feeder = feeders[Random.nextInt(0, feeders.size)]
                     if (servicedDevices.contains(feeder.id))
                         continue
