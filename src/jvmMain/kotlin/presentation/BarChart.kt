@@ -1,3 +1,5 @@
+package presentation
+
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -25,15 +27,15 @@ class BarChart : JPanel() {
             g.fillRect(x, getHeight() - height - 25, width, height)
             g.color = Color.black
             g.drawRect(x, getHeight() - height - 25, width, height)
-            g.drawString(value[1].toString(), x + 10, getHeight() - 10)
-            g.drawString(
-                value[0].toString(), x + 10, getHeight() - (height - 10)
-            )
-            x += width + 2
+            val str = if (value[1] == 1) "${value[1]} объект - ${value[0]} раз"
+            else if (value[1] in 2..4) "${value[1]} объекта - ${value[0]} раз"
+            else "${value[1]} объектов - ${value[0]} раз"
+            g.drawString(str, x + 10, getHeight() - 10)
+            x += width + 5
         }
     }
 
-    override fun getPreferredSize() = Dimension(600, 300)
+    override fun getPreferredSize() = Dimension((bars.size * 10 + 5) * 15, 500)
 
     companion object {
         val colors = listOf(
