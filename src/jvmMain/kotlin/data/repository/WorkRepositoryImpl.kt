@@ -36,7 +36,7 @@ class WorkRepositoryImpl : WorkRepository {
                     work.workStage = WorkStage.SEND_RESULTS
                     minuteCounter += Random.nextInt(5, 15)
 
-                    work.workStage = WorkStage.WAITING
+                    work.workStage = WorkStage.FINISHED
                     spentMoney += crew.hourlyRate * crew.countOfWorkers * minuteCounter / 60
                     work.minuteCounter += minuteCounter
                     work.spentMoney += spentMoney

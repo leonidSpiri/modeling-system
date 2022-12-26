@@ -120,7 +120,7 @@ class MainScreen {
         panel.add(JLabel("Всего операций моделирования: ${summaryStatistics.operationCounter}"))
         panel.add(JLabel("Среднее потраченных Д/С в день одной бригадой: ${summaryStatistics.totalSpentMoney} ₽"))
         panel.add(JLabel("Среднее полученных Д/С в день одной бригадой: ${summaryStatistics.totalReceivedMoney} ₽"))
-        panel.add(JLabel("Среднее рабочее время в день одной бригады: ${summaryStatistics.totalMinuteCounter / 60} hours"))
+        panel.add(JLabel("Среднее рабочее время в день одной бригады: ${summaryStatistics.totalMinuteCounter / 60} часов"))
         panel.add(JLabel("Общее количество заработанных Д/С: ${summaryStatistics.totalMoney} ₽"))
         frame.add(panel)
         frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE

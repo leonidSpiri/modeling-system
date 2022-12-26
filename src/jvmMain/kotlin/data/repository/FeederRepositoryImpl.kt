@@ -12,7 +12,7 @@ class FeederRepositoryImpl : FeederRepository {
                 Feeder(
                     id = i,
                     normativeTime = Random.nextInt(20, 150),
-                    serviceCost = Random.nextInt(7500, 12000),
+                    serviceCost = Random.nextInt(1500, 8000),
                 )
             )
         }
